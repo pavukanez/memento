@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
-import { uploadToR2 } from '@/lib/r2'
-import { supabase } from '@/lib/supabase'
 import { generatePuzzleConfig, generatePuzzlePieces } from '@/lib/puzzle'
 
 export async function POST(request: NextRequest) {
@@ -15,6 +14,12 @@ export async function POST(request: NextRequest) {
     if (authError || !session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    // Create server-side Supabase client with secret key
+    const supabaseServer = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SECRET_KEY!
+    )
 
     const formData = await request.formData()
     const file = formData.get('file') as File
@@ -30,19 +35,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'File must be an image' }, { status: 400 })
     }
 
-    // Generate unique key for R2
+    // Generate unique path for Supabase Storage
     const fileExtension = file.name.split('.').pop()
-    const key = `rooms/${session.user.id}/${Date.now()}.${fileExtension}`
+    const path = `rooms/${session.user.id}/${Date.now()}.${fileExtension}`
 
-    // Upload to R2
-    const imageUrl = await uploadToR2(file, key)
+    // Upload to Supabase Storage using server client
+    const { data: uploadData, error: uploadError } = await supabaseServer.storage
+      .from('puzzle-images')
+      .upload(path, file, {
+        cacheControl: '3600',
+        upsert: false
+      })
+
+    if (uploadError) {
+      throw new Error(`Upload failed: ${uploadError.message}`)
+    }
+
+    const { data: { publicUrl } } = supabaseServer.storage
+      .from('puzzle-images')
+      .getPublicUrl(uploadData.path)
+
+    const imageUrl = publicUrl
 
     // Generate puzzle configuration
     const puzzleConfig = generatePuzzleConfig(difficulty || 'easy')
     const puzzlePieces = generatePuzzlePieces(puzzleConfig)
 
-    // Create room in database
-    const { data: room, error: roomError } = await supabase
+    // Create room in database using server client
+    const { data: room, error: roomError } = await supabaseServer
       .from('rooms')
       .insert({
         name: roomName,
@@ -57,7 +77,7 @@ export async function POST(request: NextRequest) {
       throw roomError
     }
 
-    // Create puzzle pieces
+    // Create puzzle pieces using server client
     const piecesData = puzzlePieces.map(piece => ({
       room_id: room.id,
       piece_index: piece.pieceIndex,
@@ -69,7 +89,7 @@ export async function POST(request: NextRequest) {
       rotation: piece.rotation,
     }))
 
-    const { error: piecesError } = await supabase
+    const { error: piecesError } = await supabaseServer
       .from('puzzle_pieces')
       .insert(piecesData)
 

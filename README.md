@@ -5,7 +5,7 @@ A collaborative jigsaw puzzle game designed for long-distance relationships. Upl
 ## Features
 
 - 🔐 **Authentication**: Email/password and magic link authentication via Supabase
-- 📸 **Photo Upload**: Upload photos to Cloudflare R2 storage
+- 📸 **Photo Upload**: Upload photos to Supabase Storage
 - 🧩 **Jigsaw Puzzles**: Generate puzzles with different difficulty levels (Easy: 3×4, Medium: 4×6, Hard: 6×8)
 - 🔄 **Real-time Collaboration**: Multiple users can solve puzzles together with live synchronization
 - 📱 **Mobile-Friendly**: Responsive design that works on all devices
@@ -16,7 +16,7 @@ A collaborative jigsaw puzzle game designed for long-distance relationships. Upl
 
 - **Frontend**: Next.js 14 with TypeScript
 - **Backend**: Supabase (PostgreSQL + Auth + Realtime)
-- **Storage**: Cloudflare R2 for photo storage
+- **Storage**: Supabase Storage for photo storage
 - **Styling**: Tailwind CSS
 - **Deployment**: Vercel
 
@@ -26,7 +26,6 @@ A collaborative jigsaw puzzle game designed for long-distance relationships. Upl
 
 - Node.js 18+
 - Supabase account
-- Cloudflare account
 - Vercel account
 
 ### Installation
@@ -48,8 +47,7 @@ cp env.example .env.local
 ```
 
 4. Configure your environment variables in `.env.local`:
-   - Supabase project URL and keys
-   - Cloudflare R2 credentials
+   - Supabase project URL and publishable/secret keys
    - App URL
 
 5. Set up the database:
@@ -83,8 +81,7 @@ memento/
 │   ├── providers/         # Context providers
 │   └── ui/                # Reusable UI components
 ├── lib/                   # Utility libraries
-│   ├── supabase.ts        # Supabase client
-│   ├── r2.ts              # Cloudflare R2 client
+│   ├── supabase.ts        # Supabase client and storage
 │   ├── puzzle.ts          # Puzzle logic
 │   └── utils.ts           # Utility functions
 ├── supabase/              # Supabase configuration

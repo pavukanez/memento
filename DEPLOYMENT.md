@@ -8,15 +8,15 @@ This guide will help you deploy the Memento long-distance relationship memory ga
 - Git installed
 - Vercel account (free tier)
 - Supabase account (free tier)
-- Cloudflare account (free tier)
 
 ## 1. Supabase Setup
 
 ### Create a Supabase Project
 
 1. Go to [supabase.com](https://supabase.com) and create a new project
-2. Note down your project URL and anon key from Settings > API
-3. Go to Settings > Database and note down your service role key
+2. Note down your project URL from Settings > API
+3. Go to Settings > API Keys and copy your publishable key (starts with `sb_publishable_`)
+4. Copy your secret key (starts with `sb_secret_`) - keep this secure!
 
 ### Set up the Database
 
@@ -31,28 +31,13 @@ This guide will help you deploy the Memento long-distance relationship memory ga
    - `puzzle_pieces`
    - `room_members`
 
-## 2. Cloudflare R2 Setup
+### Set up Storage
 
-### Create an R2 Bucket
+1. Go to Storage in your Supabase dashboard
+2. The `puzzle-images` bucket will be created automatically when you run the schema
+3. Verify the bucket is public and accessible
 
-1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com)
-2. Navigate to R2 Object Storage
-3. Create a new bucket (e.g., `memento-photos`)
-4. Go to Settings > R2 API tokens
-5. Create a new API token with R2 permissions
-6. Note down:
-   - Account ID
-   - Access Key ID
-   - Secret Access Key
-   - Bucket name
-
-### Set up Public Access
-
-1. In your R2 bucket settings, go to Settings > Public access
-2. Enable public access
-3. Note down the public URL (e.g., `https://pub-xxxxx.r2.dev`)
-
-## 3. Vercel Deployment
+## 2. Vercel Deployment
 
 ### Prepare Environment Variables
 
@@ -61,15 +46,8 @@ Create a `.env.local` file with the following variables:
 ```env
 # Supabase Configuration
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-
-# Cloudflare R2 Configuration
-R2_ACCOUNT_ID=your_cloudflare_account_id
-R2_ACCESS_KEY_ID=your_r2_access_key_id
-R2_SECRET_ACCESS_KEY=your_r2_secret_access_key
-R2_BUCKET_NAME=your_r2_bucket_name
-R2_PUBLIC_URL=your_r2_public_url
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
+SUPABASE_SECRET_KEY=your_supabase_secret_key
 
 # App Configuration
 NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
@@ -93,7 +71,7 @@ NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
 4. Add environment variables in the project settings
 5. Deploy
 
-## 4. Supabase Edge Functions (Optional)
+## 3. Supabase Edge Functions (Optional)
 
 If you want to use Supabase Edge Functions instead of Vercel API routes:
 
@@ -102,7 +80,7 @@ If you want to use Supabase Edge Functions instead of Vercel API routes:
 3. Run `supabase link --project-ref your-project-ref`
 4. Deploy the function: `supabase functions deploy upload-to-r2`
 
-## 5. Testing Your Deployment
+## 4. Testing Your Deployment
 
 1. Visit your deployed Vercel URL
 2. Sign up for a new account
@@ -111,20 +89,21 @@ If you want to use Supabase Edge Functions instead of Vercel API routes:
 5. Test the puzzle functionality
 6. Share the room link with another user to test collaboration
 
-## 6. Custom Domain (Optional)
+## 5. Custom Domain (Optional)
 
 1. In Vercel dashboard, go to your project settings
 2. Navigate to Domains
 3. Add your custom domain
 4. Update the `NEXT_PUBLIC_APP_URL` environment variable
 
-## 7. Monitoring and Maintenance
+## 6. Monitoring and Maintenance
 
 ### Supabase Monitoring
 
 - Monitor your database usage in the Supabase dashboard
 - Check the Auth logs for any issues
 - Monitor Realtime connections
+- Check Storage usage and bandwidth
 
 ### Vercel Monitoring
 
@@ -132,18 +111,12 @@ If you want to use Supabase Edge Functions instead of Vercel API routes:
 - Monitor bandwidth and function execution time
 - Set up alerts for errors
 
-### Cloudflare R2 Monitoring
-
-- Monitor storage usage in Cloudflare dashboard
-- Check bandwidth usage
-- Set up alerts for unusual activity
-
 ## Troubleshooting
 
 ### Common Issues
 
 1. **CORS Errors**: Make sure your Supabase project allows your domain
-2. **Upload Failures**: Check R2 credentials and bucket permissions
+2. **Upload Failures**: Check Supabase Storage bucket permissions and policies
 3. **Realtime Not Working**: Ensure Realtime is enabled for the correct tables
 4. **Authentication Issues**: Verify Supabase keys and URL
 
@@ -159,8 +132,7 @@ NEXT_PUBLIC_DEBUG=true
 ### Free Tier Limits
 
 - **Vercel**: 100GB bandwidth, 100 serverless function executions
-- **Supabase**: 500MB database, 50,000 monthly active users
-- **Cloudflare R2**: 10GB storage, 1M requests
+- **Supabase**: 500MB database, 1GB storage, 50,000 monthly active users
 
 ### Tips for Staying Free
 
@@ -175,7 +147,9 @@ NEXT_PUBLIC_DEBUG=true
 2. Use Row Level Security (RLS) policies in Supabase
 3. Validate file uploads on the server side
 4. Implement rate limiting for uploads
-5. Regularly rotate API keys
+5. Keep your secret key secure - never expose it in client-side code
+6. Use Supabase Storage policies to control access
+7. Regularly rotate your secret key for enhanced security
 
 ## Support
 
@@ -189,4 +163,4 @@ If you encounter issues:
 For additional help, refer to:
 - [Vercel Documentation](https://vercel.com/docs)
 - [Supabase Documentation](https://supabase.com/docs)
-- [Cloudflare R2 Documentation](https://developers.cloudflare.com/r2/)
+- [Supabase Storage Documentation](https://supabase.com/docs/guides/storage)

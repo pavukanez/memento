@@ -4,11 +4,11 @@ const nextConfig = {
     appDir: true,
   },
   images: {
-    domains: ['localhost', 'your-r2-domain.com'],
+    domains: ['localhost'],
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '*.r2.cloudflarestorage.com',
+        hostname: '*.supabase.co',
       },
     ],
   },

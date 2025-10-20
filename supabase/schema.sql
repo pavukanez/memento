@@ -1,6 +1,27 @@
 -- Enable necessary extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+-- Create storage bucket for puzzle images
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('puzzle-images', 'puzzle-images', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Storage policies for puzzle-images bucket
+CREATE POLICY "Users can upload puzzle images" ON storage.objects
+  FOR INSERT WITH CHECK (
+    bucket_id = 'puzzle-images' AND 
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+CREATE POLICY "Users can view puzzle images" ON storage.objects
+  FOR SELECT USING (bucket_id = 'puzzle-images');
+
+CREATE POLICY "Users can delete their own puzzle images" ON storage.objects
+  FOR DELETE USING (
+    bucket_id = 'puzzle-images' AND 
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
+
 -- Create rooms table
 CREATE TABLE rooms (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,

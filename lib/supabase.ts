@@ -1,15 +1,26 @@
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true
   }
 })
+
+// Storage helper functions (for client-side use)
+export async function deleteFromSupabaseStorage(path: string): Promise<void> {
+  const { error } = await supabase.storage
+    .from('puzzle-images')
+    .remove([path])
+
+  if (error) {
+    throw new Error(`Delete failed: ${error.message}`)
+  }
+}
 
 // Database types
 export interface User {
